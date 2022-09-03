@@ -120,9 +120,11 @@ class Grader():
         #else:
         #    return False
         ind = [i for i, item in enumerate(ws[region]) if item.value==content]
-        if ind:
+        if not content in self.id_status and ind:
             self.id_status[content]=[[region, str(ind[0]+1)]]#Notes: 1:'+1' due to excel row is from 1 to start;2:[()] means the structure is list and the first elment is tuple
             #self.id_status[content].append(0)#the second position is for marked_flag, initial value is 0: not marked yet
+            return True
+        elif content in self.id_status:
             return True
         else:
             return False
@@ -134,6 +136,7 @@ class Grader():
         os.system(bak_src_cmd)
         s_list = os.listdir(self.source_path)
         got_paper = False
+        hw_ind = int(re.match(r'hw(\d+)',self.cur_hw_id).group(1))
         for s in s_list:
             s_id = re.match(r'(\d{10}).*\.py$', s)#get s_id from paper name
             if not s_id:
@@ -143,7 +146,9 @@ class Grader():
             if not os.path.exists(s_id_hw) and self.checked_in_xlsx(s_id, self.xlsx_path+'/'+self.class_id+'.xlsx', self.id_col): #put in self.paper_path if s_id in excel and not in self.paper_path
                 mv_src_cmd = 'mv' + ' ' + self.source_path + '/' + s + ' ' + self.paper_path
                 os.system(mv_src_cmd)
-                self.id_status[s_id].append(0)  # the second position is for marked_flag, initial value is 0: not marked yet
+                #self.id_status[s_id].append(0)  # the second position is for marked_flag, initial value is 0: not marked yet
+                while(hw_ind+1>len(self.id_status[s_id])):
+                    self.id_status[s_id].append([0])  # the second position is a list for hw1: [marked_flag(initial value is 0: not marked yet)], the list can append score for hw1
                 got_paper = True
         return got_paper
                 
@@ -173,7 +178,8 @@ class Grader():
             ##self.id_status[stu_id]=[0]
             #self.id_status[stu_id].append(0)
         #return self.id_status[stu_id][0]
-        return self.id_status[stu_id][1]#1 means marked_flag position, while 0 is the position of (col,row) in excel
+        hw_ind = int(re.match(r'hw(\d+)',self.cur_hw_id).group(1))#homeword id is from 1 to start while the index of python is 0 based, BUT
+        return self.id_status[stu_id][hw_ind][0]#hw_ind is 1, the postion is right 1 since position 0 is always the (row,col) of stu_id, [0] is the marked_flag position in list positioned by hw_ind
         
     def wrapper(self, paper, items, wrapfile):
         with open(paper, 'r') as fr:
@@ -204,15 +210,18 @@ class Grader():
         cp_cmd = 'cp' + ' ' + '-rf' + ' ' + self.paper_path + '/' + self.cur_stu_id + '.py' + ' ' + self.mark_path + '/'
         os.system(cp_cmd)
         #self.id_status[self.cur_stu_id] = [1]
-        self.id_status[self.cur_stu_id][1] = 1
+        #self.id_status[self.cur_stu_id][1] = 1
+        hw_ind = int(re.match(r'hw(\d+)', self.cur_hw_id).group(1))
+        self.id_status[self.cur_stu_id][hw_ind][0] = 1
         stu_marked_paper = self.mark_path + '/' + self.cur_stu_id + '.py'
         write_num = 0
         with open(stu_marked_paper, 'a') as m:
             m.write('\n\n\n')
             m.write('**********Below is the comment region***********\n')
             if not result:
-                self.id_status[self.cur_stu_id].append(100.0)
-                m.write('Passed all the test cases, score is: %.0f! \n' % self.id_status[self.cur_stu_id][2])
+                score = 100.0
+                self.id_status[self.cur_stu_id][hw_ind].append(score)
+                m.write('Passed all the test cases, score is: %.0f! \n' % score)
                 m.write('Congratulations!')
             else:
                 for line in result:
@@ -250,7 +259,7 @@ class Grader():
                         error_cases = int(error_cases)
                         m.write('%d cases had failures out of %d\n' % (error_cases, sum(self.hw_status[self.cur_hw_id].values())))
                         score = round(-error_cases/sum(self.hw_status[self.cur_hw_id].values())*40+100,0)
-                        self.id_status[self.cur_stu_id].append(score)
+                        self.id_status[self.cur_stu_id][hw_ind].append(score)
                         m.write('\n')
                         m.write('Score is: %.0f' % score)
                         continue
@@ -258,25 +267,26 @@ class Grader():
                         m.write(line)
                         m.write('\n')
                         score = 59.0
-                        self.id_status[self.cur_stu_id].append(score)
+                        self.id_status[self.cur_stu_id][hw_ind].append(score)
                         m.write('Score is %.0f' % score)
                         continue
                     if line == 'IndentationError\n':
                         m.write(line)
                         m.write('\n')
                         score = 59.0
-                        self.id_status[self.cur_stu_id].append(score)
+                        self.id_status[self.cur_stu_id][hw_ind].append(score)
                         m.write('Score is %.0f' % score)
                         continue
 
     def recoder(self):
         with open(self.wrap_path + '/' + 'id_status.json', 'w') as fid:
             json.dump(self.id_status, fid, indent=4, sort_keys=True)
+        hw_ind=int(re.match(r'hw(\d+)',self.cur_hw_id).group(1))
         wb = openpyxl.load_workbook(self.xlsx_path+'/'+self.class_id+'.xlsx')
         ws = wb.active
         for sidv in self.id_status.values():
             cr = self.score_col+sidv[0][1]
-            ws[cr]=sidv[2]
+            ws[cr]=sidv[hw_ind][1]
         wb.save(self.xlsx_path+'/'+self.class_id+'.xlsx')
 
 
