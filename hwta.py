@@ -163,8 +163,18 @@ class Grader():
             q_name = self.question_path + '/' + q
             with open (q_name, 'r') as f:
                 prefix = f.readlines()
-            a_dict[prefix[self.qb_start_pos]]=prefix[self.qb_start_pos:self.qb_end_pos]
-            for p in prefix[self.qb_start_pos:self.qb_end_pos]:
+            #a_dict[prefix[self.qb_start_pos]]=prefix[self.qb_start_pos:self.qb_end_pos]
+            a_dict[prefix[self.qb_start_pos]]=[]
+            in_comment = False
+            for p_prefix in prefix:
+                a_dict[prefix[self.qb_start_pos]].append(p_prefix)
+                if in_comment == True:
+                    if p_prefix == "    '''\n":
+                        break
+                if p_prefix == "    '''\n":
+                    in_comment = True
+            #for p in prefix[self.qb_start_pos:self.qb_end_pos]:
+            for p in a_dict[prefix[self.qb_start_pos]]:
                 if p[4:8]=='>>> ':
                     num += 1
             q_ind = q.split('.')[0]

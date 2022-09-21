@@ -1,8 +1,11 @@
-def getlistvalue():
+def dict_ex1():
     '''
-    >>> getlistvalue()
-    4
+    >>> dict_ex1()
+    {'year': 2022, 'course': 'PYTHON'}
     '''
-    #*****Get the value of [1,[2,4],3][1][1]****************************#
-    #*****Below is your coding area for getlistvalue implementation*****#
-    #*****You can add line if needed************************************#
+    #*****Create a dictionary as {'year':2022,'course':'PYTHON'}********#
+    #*****Below is your coding area for implementation******************#
+    #*****Replace blank with proper contents and remain other parts*****#
+    my_dict=________
+    return my_dict
+c=dict_ex1()

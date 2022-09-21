@@ -1,10 +1,11 @@
-def sqrt(x):
+def tuple_ex1():
     '''
-    >>> sqrt(4)
-    2.0
-    >>> sqrt(9)
-    3.0
+    >>> tuple_ex1() 
+    (0, 2, 4, 6, 8)
     '''
-    #*****To Squares root a number and returns the result***************#
-    #*****Below is your coding area for sqrt implementation*************#
-    #*****You can add line if needed************************************#
+    #*****Create a tuple as (0,2,4,6,8)*********************************#
+    #*****Below is your coding area for implementation******************#
+    #*****Replace blank with proper contents and remain other parts*****#
+    my_tuple=________
+    return my_tuple
+b=tuple_ex1()

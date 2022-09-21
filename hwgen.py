@@ -53,18 +53,20 @@ class HwGen:
         q_list = q_str.split(',')
         q_files = [q+'.py' for q in q_list]
         for q in q_files:
-            in_func = False
+            in_anno = False
             q_name = self.question_path + '/' + q
             with open (q_name, 'r') as f:
                 q_lines = f.readlines()
             for q_l in q_lines:
-                if q_l[0:3] == 'def':
-                    self.buffer.append(q_l)
-                    in_func = True
+                if in_anno == True:
+                    if q_l == "    '''\n":
+                        in_anno = False
                     continue
-                if in_func == True:
-                    if q_l[0:5]=='    #':
-                       self.buffer.append(q_l)
+                elif q_l == "    '''\n":
+                    in_anno = True
+                    continue
+                else:
+                    self.buffer.append(q_l)
             self.buffer.append('\n\n\n\n\n')
             #self.buffer.append('    #*****Code region end for this function*****#\n')
     def gen_write(self):
