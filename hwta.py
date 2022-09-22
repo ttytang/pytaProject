@@ -1,19 +1,3 @@
-#########example code############
-###def square(x):
-###    '''
-###    Squares a number and returns the result.
-###    >>> square(2)
-###    4
-###    >>> square(3)
-###    9
-###    '''
-###    'Below is your coding area'
-###    return x**x
-###
-###if __name__=='__main__':
-###    import doctest, hwta
-###    doctest.testmod(hwta)
-
 import logging
 import sys
 import os
@@ -121,7 +105,7 @@ class Grader():
         #    return False
         ind = [i for i, item in enumerate(ws[region]) if item.value==content]
         if not content in self.id_status and ind:
-            self.id_status[content]=[[region, str(ind[0]+1)]]#Notes: 1:'+1' due to excel row is from 1 to start;2:[()] means the structure is list and the first elment is tuple
+            self.id_status[content]=[[region, str(ind[0]+1)]]#Notes: 1:'+1' due to excel row is from 1 to start;2:[[]] means the structure is list and the first elment is list
             #self.id_status[content].append(0)#the second position is for marked_flag, initial value is 0: not marked yet
             return True
         elif content in self.id_status:
@@ -188,7 +172,7 @@ class Grader():
             ##self.id_status[stu_id]=[0]
             #self.id_status[stu_id].append(0)
         #return self.id_status[stu_id][0]
-        hw_ind = int(re.match(r'hw(\d+)',self.cur_hw_id).group(1))#homeword id is from 1 to start while the index of python is 0 based, BUT
+        hw_ind = int(re.match(r'hw(\d+)',self.cur_hw_id).group(1))#homework id is from 1 to start while the index of python is 0 based, BUT
         return self.id_status[stu_id][hw_ind][0]#hw_ind is 1, the postion is right 1 since position 0 is always the (row,col) of stu_id, [0] is the marked_flag position in list positioned by hw_ind
         
     def wrapper(self, paper, items, wrapfile):
@@ -197,6 +181,10 @@ class Grader():
         assign_set = set(items.keys())
         with open(wrapfile,'w') as fw:
             for code_line in paper_code:
+                e_addr = re.match(r'^#email:(.+@.+)\n$', code_line)
+                if e_addr:
+                    e_addr=e_addr.group(1).strip()
+                    self.id_status[self.cur_stu_id][0].append(e_addr)#append after the row&col elements of the first element
                 if code_line in assign_set:
                     assign_set.remove(code_line)
                     #finished_item_num += 1
@@ -299,7 +287,19 @@ class Grader():
             ws[cr]=sidv[hw_ind][1]
         wb.save(self.xlsx_path+'/'+self.class_id+'.xlsx')
 
-
+    def post_mail(self):
+        import yagmail
+        auth_code = sys.argv[1]
+        yag = yagmail.SMTP(user='267282100@qq.com', password=auth_code, host='smtp.qq.com')
+        marked_papers = os.listdir(self.mark_path)
+        for mp in marked_papers:
+            stu_id = re.match(r'^(\d+)\.py$',mp).group(1)
+            with_addr = self.id_status[stu_id][0]
+            if len(with_addr)>2:
+                to_addr = with_addr[2]
+                sub = self.cur_hw_id + ' comments'
+                stu_marked_paper = self.mark_path + '/' + mp
+                yag.send(to=to_addr, subject=sub, contents='comments to your homwork as attached:\n', attachments=stu_marked_paper)
 
     def liner(self):
         self.make_fs()    
@@ -318,11 +318,13 @@ class Grader():
                 stdout_buff = self.tester()#input: p_wraped, self.marks_path. run and mark operation to generate marked paper
                 self.marker(stdout_buff)
         self.recoder()#input: self.id_status and self.excel_path
+        #self.post_mail()
         return True
             
     def cleanup(self):
         mod_cmd = 'chmod 775 -R %s' % self.source_path
         os.system(mod_cmd)
+
 
 if __name__=='__main__':
     #create logger with 'spam_application'
@@ -348,4 +350,7 @@ if __name__=='__main__':
         graderTA.liner()
         print('finished %s class' % cls)
         graderTA.cleanup()#rm source_path file and set source_path rw right to 775
+        post_mail_en = conf.mask('post')
+        if post_mail_en == '1':
+            graderTA.post_mail()
     
