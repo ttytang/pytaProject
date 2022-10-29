@@ -1,5 +1,6 @@
 import os
 import sys
+import re
 from configparser import ConfigParser
 
 class ReadConfig:
@@ -45,7 +46,7 @@ class HwGen:
         self.buffer.append('#email:               \n')
     def gen_import_region(self):
         self.buffer.append('#*****Below is Import region***********#\n')
-        self.buffer.append('#*****You can add line if needed*******#\n')
+        self.buffer.append('#*****You can add lines if needed******#\n')
         self.buffer.append('\n')
         self.buffer.append('\n\n')
     def gen_assign_region(self):
@@ -54,6 +55,7 @@ class HwGen:
         q_files = [q+'.py' for q in q_list]
         for q in q_files:
             in_anno = False
+            in_embeded_code=False
             q_name = self.question_path + '/' + q
             with open (q_name, 'r') as f:
                 q_lines = f.readlines()
@@ -61,13 +63,23 @@ class HwGen:
                 if in_anno == True:
                     if q_l == "    '''\n":
                         in_anno = False
+                        in_embeded_code = True
                     continue
                 elif q_l == "    '''\n":
                     in_anno = True
                     continue
+                elif in_embeded_code==True:
+                    if q_l[0:5] != "    #":
+                        continue
+                    else:
+                        in_embeded_code=False
+                        self.buffer.append(q_l)
                 else:
                     self.buffer.append(q_l)
-            self.buffer.append('\n\n\n\n\n')
+            if not re.match(r'^_+',q_lines[-1]): 
+                self.buffer.append('\n\n\n\n\n')
+            else:
+                self.buffer.append('\n')
             #self.buffer.append('    #*****Code region end for this function*****#\n')
     def gen_write(self):
         hw_post = self.post_path + '.py'

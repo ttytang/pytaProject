@@ -1,16 +1,17 @@
-def case_conversion(f):
+def get_tensplace(x):
     '''
-    >>> case_conversion('../../question_bank/f1.txt')
-    ['ABCDabcd']
-    >>> case_conversion('../../question_bank/f2.txt')
-    ['ABCD1234\\n', 'AaBbCcDd@']
+    #will insert student ID in the first line by code automatically
+    #such as current_student_id = '1000000000'
+    >>> import sys; from io import StringIO; savedStdout=sys.stdout; f=StringIO(); sys.stdout=f; get_tensplace(4325); sys.stdout=savedStdout; print(f.getvalue()==str(current_student_id)+'\\n'+'2'+'\\n');
+    True
+    >>> import sys; from io import StringIO; savedStdout=sys.stdout; f=StringIO(); sys.stdout=f; get_tensplace(-35); sys.stdout=savedStdout; print(f.getvalue()==str(current_student_id)+'\\n'+'-3'+'\\n');
+    True
+    >>> import sys; from io import StringIO; savedStdout=sys.stdout; f=StringIO(); sys.stdout=f; get_tensplace(2); sys.stdout=savedStdout; print(f.getvalue()==str(current_student_id)+'\\n'+'0'+'\\n');
+    True
     '''
-    #*****Create a case conversion function as described****************#
-    #****open a file specified by parameter f***************************#
-    #****read the content of the file***********************************#
-    #****and change the case of the characters in it********************#
-    #****and return the contents in a list as f.readlines format********#
+    #*****Get the digit on tens place of one number ********************#
+    #*****And return it ************************************************#
     #*****Below is your coding area for implementation******************#
-    #*****You can add lines if needed***********************************#
+    #*****Add lines if necessary ***************************************#
 
-    return result
+    return tensplace

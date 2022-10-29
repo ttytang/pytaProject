@@ -1,6 +1,6 @@
 def list_ex3():
     '''
-    >>> list_ex3()
+    >>> list_ex3()[0:3]
     [[1, 3, 5, 7, 9], (0, 2, 4, 6, 8), {'year': 2022, 'course': 'PYTHON'}]
     '''
     #*****Create a list as above with append function of global list d**# 
@@ -10,3 +10,4 @@ def list_ex3():
     _________
     _________
     return d
+d=list_ex3()

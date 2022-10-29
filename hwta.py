@@ -115,7 +115,7 @@ class Grader():
     
     def fetch_paper(self):
         mod_cmd = 'chmod 700 -R %s' % self.source_path
-        os.system(mod_cmd)
+        #os.system(mod_cmd)
         bak_src_cmd = 'rsync -at %s/*.py %s/' % (self.source_path, self.bak_path)
         os.system(bak_src_cmd)
         s_list = os.listdir(self.source_path)
@@ -151,11 +151,18 @@ class Grader():
             #a_dict[prefix[self.qb_start_pos]]=prefix[self.qb_start_pos:self.qb_end_pos]
             a_dict[prefix[self.qb_start_pos]]=[]
             in_comment = False
+            in_embeded_code = False
             for p_prefix in prefix:
                 a_dict[prefix[self.qb_start_pos]].append(p_prefix)
+                if in_embeded_code == True:
+                    if p_prefix[0:5] == "    #":
+                        a_dict[prefix[self.qb_start_pos]].pop()
+                        in_embeded_code=False
+                        break
                 if in_comment == True:
                     if p_prefix == "    '''\n":
-                        break
+                        in_embeded_code=True
+                        in_comment=False
                 if p_prefix == "    '''\n":
                     in_comment = True
             #for p in prefix[self.qb_start_pos:self.qb_end_pos]:
@@ -181,6 +188,7 @@ class Grader():
             paper_code = fr.readlines()
         assign_set = set(items.keys())
         with open(wrapfile,'w') as fw:
+            fw.write('current_student_id=%d\n'%int(self.cur_stu_id))
             for code_line in paper_code:
                 e_addr = re.match(r'^#email:(.+@.+)\n$', code_line)
                 if e_addr:
@@ -197,6 +205,7 @@ class Grader():
             fw.flush()
 
     def tester(self):
+        print('\r%s'%self.cur_stu_id, end='\r')
         test_path = self.wrap_path
         os.chdir(test_path)
         run_case_cmd = 'python3 suffix.py'
@@ -255,7 +264,7 @@ class Grader():
                         write_num = error_items
                         continue
                     if re.match(r'.+\d+ failures\.\n', line):
-                        error_cases = re.match(r'.+(\d+) failures\.\n', line).group(1)
+                        error_cases = re.match(r'.+?(\d+) failures\.\n', line).group(1)
                         error_cases = int(error_cases)
                         m.write('%d cases had failures out of %d\n' % (error_cases, sum(self.hw_status[self.cur_hw_id].values())))
                         score = round(-error_cases/sum(self.hw_status[self.cur_hw_id].values())*40+100,0)
@@ -315,7 +324,7 @@ class Grader():
         for sidv in self.id_status.values():
             cr = self.score_col+sidv[0][1]
             if len(sidv)>hw_ind:
-                ws[cr]=sidv[hw_ind][1]
+                if len(sidv[hw_ind])>1: ws[cr]=sidv[hw_ind][1]
         wb.save(self.xlsx_path+'/'+self.class_id+'.xlsx')
 
     def post_mail(self):
