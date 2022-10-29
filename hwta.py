@@ -119,6 +119,7 @@ class Grader():
         bak_src_cmd = 'rsync -at %s/*.py %s/' % (self.source_path, self.bak_path)
         os.system(bak_src_cmd)
         s_list = os.listdir(self.source_path)
+        #s_list.sort()
         got_paper = False
         hw_ind = int(re.match(r'hw(\d+)',self.cur_hw_id).group(1))
         for s in s_list:
@@ -201,6 +202,7 @@ class Grader():
         run_case_cmd = 'python3 suffix.py'
         fh = os.popen(run_case_cmd, 'r')
         buff = fh.readlines()
+        fh.close()
         os.chdir(self.base_path)
         return (buff)
 
@@ -275,6 +277,34 @@ class Grader():
                         self.id_status[self.cur_stu_id][hw_ind].append(score)
                         m.write('Score is %.0f' % score)
                         continue
+                    if line == 'NameError\n':
+                        m.write(line)
+                        m.write('\n')
+                        score = 59.0
+                        self.id_status[self.cur_stu_id][hw_ind].append(score)
+                        m.write('Score is %.0f' % score)
+                        continue
+                    if line == 'TypeError\n':
+                        m.write(line)
+                        m.write('\n')
+                        score = 59.0
+                        self.id_status[self.cur_stu_id][hw_ind].append(score)
+                        m.write('Score is %.0f' % score)
+                        continue
+                    if line == 'AttributeError\n':
+                        m.write(line)
+                        m.write('\n')
+                        score = 59.0
+                        self.id_status[self.cur_stu_id][hw_ind].append(score)
+                        m.write('Score is %.0f' % score)
+                        continue
+                    if re.match(r'^[A-Z][a-z]*Error\n$', line):
+                        m.write(line)
+                        m.write('\n')
+                        score = 59.0
+                        self.id_status[self.cur_stu_id][hw_ind].append(score)
+                        m.write('Score is %.0f' % score)
+                        continue
 
     def recoder(self):
         with open(self.wrap_path + '/' + 'id_status.json', 'w') as fid:
@@ -284,7 +314,8 @@ class Grader():
         ws = wb.active
         for sidv in self.id_status.values():
             cr = self.score_col+sidv[0][1]
-            ws[cr]=sidv[hw_ind][1]
+            if len(sidv)>hw_ind:
+                ws[cr]=sidv[hw_ind][1]
         wb.save(self.xlsx_path+'/'+self.class_id+'.xlsx')
 
     def post_mail(self):
@@ -296,7 +327,7 @@ class Grader():
             stu_id = re.match(r'^(\d+)\.py$',mp).group(1)
             with_addr = self.id_status[stu_id][0]
             if len(with_addr)>2:
-                to_addr = with_addr[2]
+                to_addr = with_addr[-1]
                 sub = self.cur_hw_id + ' comments'
                 stu_marked_paper = self.mark_path + '/' + mp
                 yag.send(to=to_addr, subject=sub, contents='comments to your homwork as attached:\n', attachments=stu_marked_paper)
