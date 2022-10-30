@@ -148,15 +148,22 @@ class Grader():
             q_name = self.question_path + '/' + q
             with open (q_name, 'r') as f:
                 prefix = f.readlines()
-            #a_dict[prefix[self.qb_start_pos]]=prefix[self.qb_start_pos:self.qb_end_pos]
-            a_dict[prefix[self.qb_start_pos]]=[]
+            #a_dict[prefix[self.qb_start_pos]]=[]
             in_comment = False
             in_embeded_code = False
+            def_key = None
             for p_prefix in prefix:
-                a_dict[prefix[self.qb_start_pos]].append(p_prefix)
+                if def_key:
+                    a_dict[def_key].append(p_prefix)
+                if (len(p_prefix)>4 and p_prefix[0:4] == "def ") or (len(p_prefix)>6 and p_prefix[0:6] == "class "):
+                    def_key = p_prefix
+                    a_dict[def_key] = []
+                    a_dict[def_key].append(p_prefix)
+                #a_dict[prefix[self.qb_start_pos]].append(p_prefix)
                 if in_embeded_code == True:
                     if p_prefix[0:5] == "    #":
-                        a_dict[prefix[self.qb_start_pos]].pop()
+                        #a_dict[prefix[self.qb_start_pos]].pop()
+                        a_dict[def_key].pop()
                         in_embeded_code=False
                         break
                 if in_comment == True:
@@ -165,8 +172,8 @@ class Grader():
                         in_comment=False
                 if p_prefix == "    '''\n":
                     in_comment = True
-            #for p in prefix[self.qb_start_pos:self.qb_end_pos]:
-            for p in a_dict[prefix[self.qb_start_pos]]:
+            #for p in a_dict[prefix[self.qb_start_pos]]:
+            for p in a_dict[def_key]:
                 if p[4:8]=='>>> ':
                     num += 1
             q_ind = q.split('.')[0]
