@@ -75,6 +75,7 @@ class Grader():
         self.score_col = configFile.excel('score_col')
         self.qb_start_pos = int(configFile.question('question_body_start_pos'))
         self.qb_end_pos = int(configFile.question('question_body_end_pos'))
+        self.timer_chk = int(configFile.mask('timer'))
     
     def make_fs(self):
         #os.makedirs(self.source_path, exist_ok=True) #preconstructed outside the Grader
@@ -158,6 +159,8 @@ class Grader():
                 if (len(p_prefix)>4 and p_prefix[0:4] == "def ") or (len(p_prefix)>6 and p_prefix[0:6] == "class "):
                     def_key = p_prefix
                     a_dict[def_key] = []
+                    if self.timer_chk != 0 and p_prefix[0:4]=="def ":#if decorating class it seems not right for hw4, need to check further
+                        a_dict[def_key].append('@func_set_timeout(%d)\n'%self.timer_chk)
                     a_dict[def_key].append(p_prefix)
                 #a_dict[prefix[self.qb_start_pos]].append(p_prefix)
                 if in_embeded_code == True:
@@ -195,6 +198,8 @@ class Grader():
             paper_code = fr.readlines()
         assign_set = set(items.keys())
         with open(wrapfile,'w') as fw:
+            if self.timer_chk != 0:
+                fw.write('from func_timeout import func_set_timeout\n')
             fw.write('current_student_id=%d\n'%int(self.cur_stu_id))
             for code_line in paper_code:
                 e_addr = re.match(r'^#email:(.+@.+)\n$', code_line)
