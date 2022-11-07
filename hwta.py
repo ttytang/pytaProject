@@ -174,7 +174,8 @@ class Grader():
                         in_embeded_code=True
                         in_comment=False
                 if p_prefix == "    '''\n":
-                    in_comment = True
+                    if not in_embeded_code:
+                        in_comment = True
             #for p in a_dict[prefix[self.qb_start_pos]]:
             for p in a_dict[def_key]:
                 if p[4:8]=='>>> ':
@@ -202,18 +203,27 @@ class Grader():
                 fw.write('from func_timeout import func_set_timeout\n')
             fw.write('current_student_id=%d\n'%int(self.cur_stu_id))
             for code_line in paper_code:
+                code_line_feature = re.match(r'(^[c|d].+\().*\)', code_line)
+                if code_line_feature:
+                    code_line_feature = code_line_feature.group(1)
                 e_addr = re.match(r'^#email:(.+@.+)\n$', code_line)
                 if e_addr:
                     e_addr=e_addr.group(1).strip()
                     self.id_status[self.cur_stu_id][0].append(e_addr)#append after the row&col elements of the first element
                 if code_line in assign_set:
                     assign_set.remove(code_line)
-                    #finished_item_num += 1
                     doctest_line = items[code_line]
                     for cl in doctest_line:
                         fw.write(cl)
                 else:
                     fw.write(code_line)
+                    for assign_set_element in assign_set:
+                        if code_line_feature and code_line_feature in assign_set_element:
+                            assign_set.remove(assign_set_element)
+                            doctest_line = items[assign_set_element][1:]
+                            for cl in doctest_line:
+                                fw.write(cl)
+                            break         
             fw.flush()
 
     def tester(self):
