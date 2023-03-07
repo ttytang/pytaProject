@@ -329,7 +329,7 @@ class Grader():
                         self.id_status[self.cur_stu_id][hw_ind].append(score)
                         m.write('Score is %.0f' % score)
                         continue
-                    if re.match(r'^[A-Z][a-z]*Error\n$', line):
+                    if re.match(r'^[A-Z][a-zA-Z]*Error\n$', line):
                         m.write(line)
                         m.write('\n')
                         score = 59.0
